@@ -14,7 +14,7 @@
 %   classical mechanics. For the maximum quantum or no-signalling value,
 %   see the optional arguments described below.
 %
-%   This function has two optional input arguments:
+%   This function has three optional input arguments:
 %     MTYPE (default 'classical'): one of 'classical', 'quantum', or
 %       'nosignal', indicating what type of Bell inequality maximum should
 %       be computed. IMPORTANT NOTE: if MTYPE='quantum' then only an upper
@@ -25,6 +25,8 @@
 %       bound the Bell inequality (higher values give better bounds, but
 %       require more computation time). See the NPAHierarchy function for
 %       details.
+%     Verbose (default false): if VERBOSE=false, then CVX operates in quiet
+%       mode. Otherwise, intermediate output is printed to console.
 %
 %   BMAX = BellInequalityMax(COEFFICIENTS,DESC,NOTATION,MTYPE,K) is
 %   the maximum value that the specified Bell inequality can take on in the
@@ -40,7 +42,14 @@
 function bmax = BellInequalityMax(coefficients,desc,notation,varargin)
 
     % set optional argument defaults: MTYPE='classical', K=1
-    [mtype,k] = opt_args({ 'classical', 1 },varargin{:});
+    [mtype, k, verbose] = opt_args({ 'classical', 1, false},varargin{:});
+    
+    % set 'verbose' (or not) for CVX    
+    if verbose
+        extra_cvx_opts = {};
+    else
+        extra_cvx_opts = {'quiet'};
+    end
 
     % Get some basic values
     oa = desc(1);
@@ -61,7 +70,7 @@ function bmax = BellInequalityMax(coefficients,desc,notation,varargin)
            	M = fc2cg(coefficients);
         end
 
-        cvx_begin quiet
+        cvx_begin(extra_cvx_opts{:})
         	variable p_cg((oa-1)*ma+1,(ob-1)*mb+1);
 
             p_fp = cg2fp(p_cg,desc,1);
@@ -87,7 +96,7 @@ function bmax = BellInequalityMax(coefficients,desc,notation,varargin)
            	M = fc2cg(coefficients);
         end
 
-        cvx_begin quiet
+        cvx_begin(extra_cvx_opts{:})
 
             variable p((oa-1)*ma+1,(ob-1)*mb+1);
             
